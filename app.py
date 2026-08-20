@@ -46,7 +46,7 @@ if uploaded_file is not None:
                 # Şeffaflık (RGBA) veya farklı formatlardaki resimleri standart RGB'ye çevir
                 image = image.convert("RGB")
                 
-                # Modelin ilk eğitim aşamasındaki giriş boyutuna (170x170) göre yeniden boyutlandırıldı[cite: 1]
+                # Modelin beklediği giriş boyutu (170x170)[cite: 1]
                 img = image.resize((170, 170)) 
                 img_array = np.array(img, dtype=np.float32) / 255.0  # Normalizasyon
                 
@@ -55,10 +55,20 @@ if uploaded_file is not None:
                 
                 # Tahmin yapma
                 prediction = model.predict(img_array)
+                score = float(prediction[0][0])
                 
-                # Sonucu ekrana yazdır
+                # Sonucu sınıflara dönüştürme (Eğitim sırasına göre: Non_Cancer: 0, Cancer: 1)[cite: 1]
                 st.success("Analiz Tamamlandı!")
-                st.write(f"Tahmin Sonucu: {prediction}")
+                
+                if score > 0.5:
+                    confidence = score * 100
+                    st.error(f"Tahmin Sonucu: **Cancer (Kanser)** - Güven Oranı: %{confidence:.2f}")
+                else:
+                    confidence = (1 - score) * 100
+                    st.success(f"Tahmin Sonucu: **Non-Cancer (Kanser Değil)** - Güven Oranı: %{confidence:.2f}")
+                
+                # İsteğe bağlı ham skoru görmek için
+                st.write(f"Ham Model Skoru: {score:.4f}")
                 
             except Exception as e:
                 st.error(f"Analiz sırasında bir hata oluştu: {e}")
