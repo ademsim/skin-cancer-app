@@ -3,3 +3,4 @@ torch
 keras>=3.0.0
 numpy
 pillow
+gdown
