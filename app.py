@@ -46,11 +46,11 @@ if uploaded_file is not None:
                 # Şeffaflık (RGBA) veya farklı formatlardaki resimleri standart RGB'ye çevir
                 image = image.convert("RGB")
                 
-                # Modelin beklediği giriş boyutuna göre yeniden boyutlandır (Gerekirse 224 yerine kendi boyutunuzu yazabilirsiniz)
-                img = image.resize((224, 224)) 
+                # Modelin ilk eğitim aşamasındaki giriş boyutuna (170x170) göre yeniden boyutlandırıldı[cite: 1]
+                img = image.resize((170, 170)) 
                 img_array = np.array(img, dtype=np.float32) / 255.0  # Normalizasyon
                 
-                # Batch boyutu ekle (1, 224, 224, 3)
+                # Batch boyutu ekle (1, 170, 170, 3)
                 img_array = np.expand_dims(img_array, axis=0) 
                 
                 # Tahmin yapma
