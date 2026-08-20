@@ -23,11 +23,11 @@ def load_my_model():
             
     return keras.models.load_model(MODEL_PATH)
 
-# Modeli yükle
+# Modeli yükle (Çalışan orijinal yapı)
 with st.spinner("Model hazırlanıyor, lütfen bekleyin..."):
     model = load_my_model()
 
-# --- ARAYÜZ VE RESİM YÜKLEME KISMI ---
+# --- ARAYÜZ VE GÜVENLİ ANALİZ KISMI ---
 
 st.title("Cilt Kanseri Teşhis Asistanı")
 st.write("Lütfen analiz etmek istediğiniz cilt lezyonu fotoğrafını yükleyin.")
@@ -42,14 +42,23 @@ if uploaded_file is not None:
     
     if st.button("Analiz Et"):
         with st.spinner("Model görüntü üzerinde analiz yapıyor..."):
-            # Modelinizin eğitim boyutuna göre (örneğin 224x224) ayarlayın
-            img = image.resize((224, 224)) 
-            img_array = np.array(img) / 255.0  # Normalizasyon
-            img_array = np.expand_dims(img_array, axis=0) # Batch boyutu ekleme
-            
-            # Tahmin yapma
-            prediction = model.predict(img_array)
-            
-            # Sonucu ekrana yazdır
-            st.success("Analiz Tamamlandı!")
-            st.write(f"Tahmin Sonucu: {prediction}")
+            try:
+                # Şeffaflık (RGBA) veya farklı formatlardaki resimleri standart RGB'ye çevir
+                image = image.convert("RGB")
+                
+                # Modelin beklediği giriş boyutuna göre yeniden boyutlandır (Gerekirse 224 yerine kendi boyutunuzu yazabilirsiniz)
+                img = image.resize((224, 224)) 
+                img_array = np.array(img, dtype=np.float32) / 255.0  # Normalizasyon
+                
+                # Batch boyutu ekle (1, 224, 224, 3)
+                img_array = np.expand_dims(img_array, axis=0) 
+                
+                # Tahmin yapma
+                prediction = model.predict(img_array)
+                
+                # Sonucu ekrana yazdır
+                st.success("Analiz Tamamlandı!")
+                st.write(f"Tahmin Sonucu: {prediction}")
+                
+            except Exception as e:
+                st.error(f"Analiz sırasında bir hata oluştu: {e}")
