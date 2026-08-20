@@ -1,9 +1,12 @@
 import os
+# Keras için PyTorch backend ayarı
 os.environ["KERAS_BACKEND"] = "torch"
 
 import streamlit as st
 import gdown
 import keras
+import numpy as np
+from PIL import Image
 
 FILE_ID = '1xbNnagCXfdm0CnYzYWAh3nJLmkOFQkDl'
 MODEL_PATH = 'skin_cancer_model.keras'
@@ -16,9 +19,37 @@ def load_my_model():
             
         with st.spinner("Model buluttan indiriliyor, lütfen bekleyin..."):
             url = f'https://drive.google.com/uc?id={FILE_ID}'
-            # Hiçbir ek parametre vermeden en sade ve kararlı çağrı
             gdown.download(url, MODEL_PATH, quiet=False)
             
     return keras.models.load_model(MODEL_PATH)
 
-model = load_my_model()
+# Modeli yükle
+with st.spinner("Model hazırlanıyor, lütfen bekleyin..."):
+    model = load_my_model()
+
+# --- ARAYÜZ VE RESİM YÜKLEME KISMI ---
+
+st.title("Cilt Kanseri Teşhis Asistanı")
+st.write("Lütfen analiz etmek istediğiniz cilt lezyonu fotoğrafını yükleyin.")
+
+# Dosya yükleme bileşeni
+uploaded_file = st.file_uploader("Bir resim seçin...", type=["jpg", "jpeg", "png"])
+
+if uploaded_file is not None:
+    # Resmi ekranda göster
+    image = Image.open(uploaded_file)
+    st.image(image, caption="Yüklenen Resim", use_container_width=True)
+    
+    if st.button("Analiz Et"):
+        with st.spinner("Model görüntü üzerinde analiz yapıyor..."):
+            # Modelinizin eğitim boyutuna göre (örneğin 224x224) ayarlayın
+            img = image.resize((224, 224)) 
+            img_array = np.array(img) / 255.0  # Normalizasyon
+            img_array = np.expand_dims(img_array, axis=0) # Batch boyutu ekleme
+            
+            # Tahmin yapma
+            prediction = model.predict(img_array)
+            
+            # Sonucu ekrana yazdır
+            st.success("Analiz Tamamlandı!")
+            st.write(f"Tahmin Sonucu: {prediction}")
