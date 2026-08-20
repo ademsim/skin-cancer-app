@@ -1,29 +1,19 @@
 import streamlit as st
-from tensorflow.keras.models import load_model
-from PIL import Image
-import numpy as np
-import cv2
+import gdown
+import os
+import keras 
 
-model=load_model('skin_cancer_model.h5')
-x=[] #boş liste
+FILE_ID = 'https://drive.google.com/file/d/11jAyAWJjgFHejigcrxwgZDSxjjUrizph/view?usp=drive_link'
+MODEL_PATH = 'skin_cancer_TL.h5'
 
-def process_image(pil_img):
-  img = np.array(pil_img)
-  img=cv2.resize(img, (170, 170))  
-  img=img/255.0 #normalize et
-  img=np.expand_dims(img,axis=0)
-  return img
+@st.cache_resource
+def load_my_model():
+    if not os.path.exists(MODEL_PATH):
+        with st.spinner("Model downloading, please wait..."):
+            url = f'https://drive.google.com/uc?id={FILE_ID}'
+            gdown.download(url, MODEL_PATH, quiet=False)
+    
+    # Keras-loading function
+    return keras.models.load_model(MODEL_PATH)
 
-st.title('Deri Kanser resmi sınıflandırma :cancer:')
-st.title('Resim seç, model kanser olup olmadığını tahmin etsin!')
-
-file=st.file_uploader('Bir resim yükle',type=['jpg','jpeg','png'])
-
-if file is not None: # Resim yüklenmişse burası çalışacak
-  img=Image.open(file)
-  st.image(img, caption='Yüklenen Resim')
-  image=process_image(img)
-  prediction=model.predict(image)
-  predicted_class= 1 if prediction > 0.5 else 0
-  class_names=['Kanser Değil','Kanser']
-  st.write(class_names[predicted_class])
+model = load_my_model()
