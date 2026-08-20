@@ -1,4 +1,6 @@
 streamlit
+keras
 tensorflow
 numpy
 pillow
+gdown
